@@ -1,0 +1,19 @@
+parameters:
+  artifactName: ''
+
+jobs:
+  - job: Release
+    displayName: Release Artifact
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - script: |
+          mkdir -p $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}
+          cp build/libs/*.jar $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}/
+        displayName: Prepare Artifact
+
+      - script: |
+          echo "Uploading artifact..."
+          echo "Simulation of upload step (e.g., Nexus, Artifactory, Azure Artifacts)"
+        displayName: Upload Artifact
+

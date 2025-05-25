@@ -1,0 +1,31 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - template: vars/global-variables.yml
+
+stages:
+  - stage: Build
+    displayName: Build Stage
+    jobs:
+      - template: templates/build.yml
+        parameters:
+          imageName: $(dockerImage)
+          gradleCommand: build
+
+  - stage: SAST
+    displayName: Static Analysis
+    dependsOn: Build
+    jobs:
+      - template: templates/sast.yml
+
+  - stage: Release
+    displayName: Release Artifact
+    dependsOn: SAST
+    jobs:
+      - template: templates/release.yml
+        parameters:
+          artifactName: springboot-app
+

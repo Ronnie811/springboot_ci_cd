@@ -1,0 +1,11 @@
+jobs:
+  - job: SAST
+    displayName: Static Code Analysis
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - script: |
+          echo "Running static analysis..."
+          ./gradlew check
+        displayName: Gradle Check
+

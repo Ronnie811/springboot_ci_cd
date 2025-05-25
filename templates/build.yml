@@ -1,0 +1,18 @@
+parameters:
+  imageName: ''
+  gradleCommand: ''
+
+jobs:
+  - job: Build
+    displayName: Build Application
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+
+      - script: |
+          docker run --rm -v $(System.DefaultWorkingDirectory):/app \
+            -w /app \
+            ${{ parameters.imageName }} ./gradlew ${{ parameters.gradleCommand }}
+        displayName: Run Gradle Build in Docker
+
