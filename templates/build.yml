@@ -7,13 +7,15 @@ parameters:
     type: string
     default: '$(System.DefaultWorkingDirectory)'
 
-steps:
-  - script: |
-      echo "Building application with Docker image: ${{ parameters.dockerImage }}"
-      docker run --rm \
-        -v ${{ parameters.workingDirectory }}:/app \
-        -w /app \
-        ${{ parameters.dockerImage }} \
-        ./gradlew clean build
-    displayName: 'Build Spring Boot App with Docker'
+jobs:
+  - job: BuildJob
+    steps:
+      - script: |
+          echo "Building application with Docker image: ${{ parameters.dockerImage }}"
+          docker run --rm \
+            -v ${{ parameters.workingDirectory }}:/app \
+            -w /app \
+            ${{ parameters.dockerImage }} \
+            ./gradlew clean build
+        displayName: 'Build Spring Boot App with Docker'
 
