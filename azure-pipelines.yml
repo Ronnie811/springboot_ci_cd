@@ -13,7 +13,7 @@ stages:
     jobs:
       - template: templates/build.yml
         parameters:
-          dockerImage: springboot-builder
+          dockerImage: gradle:8.5.0-jdk17
 
   - stage: SAST
     dependsOn: Build
