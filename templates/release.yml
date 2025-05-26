@@ -1,19 +1,55 @@
 parameters:
-  artifactName: ''
+  - name: projectName
+    type: string
+    default: 'spring-app'
+  - name: jarFile
+    type: string
+    default: 'build/libs/spring-app-0.0.1-SNAPSHOT.jar'
+  - name: githubUser
+    type: string
+    default: 'Ronnie811'
+  - name: githubRepo
+    type: string
+    default: 'springboot_ci_cd'
+  - name: githubOrg
+    type: string
+    default: 'Ronnie811'
 
 jobs:
-  - job: Release
-    displayName: Release Artifact
+  - job: release
+    displayName: Publish JAR to GitHub Packages
     pool:
       vmImage: ubuntu-latest
     steps:
-      - script: |
-          mkdir -p $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}
-          cp build/libs/*.jar $(Build.ArtifactStagingDirectory)/${{ parameters.artifactName }}/
-        displayName: Prepare Artifact
+      - checkout: self
 
-      - script: |
-          echo "Uploading artifact..."
-          echo "Simulation of upload step (e.g., Nexus, Artifactory, Azure Artifacts)"
-        displayName: Upload Artifact
+      - task: Bash@3
+        name: PublishJar
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "Publishing to GitHub Packages..."
+
+            echo "[INFO] Configuring Maven settings"
+            mkdir -p ~/.m2
+            cat <<EOF > ~/.m2/settings.xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+          https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>github</id>
+      <username>${{ parameters.githubUser }}</username>
+      <password>${{ variables.GITHUB_TOKEN }}</password>
+    </server>
+  </servers>
+</settings>
+EOF
+
+            echo "[INFO] Deploying to GitHub Maven Package"
+            ./gradlew publish \
+              -Pgpr.user=${{ parameters.githubUser }} \
+              -Pgpr.key=${{ variables.GITHUB_TOKEN }}
+
 

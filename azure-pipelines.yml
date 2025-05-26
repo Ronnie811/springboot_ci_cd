@@ -1,31 +1,32 @@
+# azure-pipelines.yml
+
 trigger:
   branches:
     include:
       - main
 
 variables:
-  - template: vars/global-variables.yml
+  - group: deploy-vars
 
 stages:
   - stage: Build
-    displayName: Build Stage
     jobs:
       - template: templates/build.yml
         parameters:
-          imageName: $(dockerImage)
-          gradleCommand: build
+          imageName: springboot-builder
 
   - stage: SAST
-    displayName: Static Analysis
     dependsOn: Build
     jobs:
       - template: templates/sast.yml
 
   - stage: Release
-    displayName: Release Artifact
     dependsOn: SAST
     jobs:
       - template: templates/release.yml
-        parameters:
-          artifactName: springboot-app
+
+  - stage: Deploy
+    dependsOn: Release
+    jobs:
+      - template: templates/deploy.yml
 

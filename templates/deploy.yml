@@ -1,0 +1,38 @@
+parameters:
+  - name: remoteUser
+    type: string
+  - name: remoteHost
+    type: string
+  - name: remotePath
+    type: string
+  - name: artifactPath
+    type: string
+  - name: healthCheckUrl
+    type: string
+
+jobs:
+  - job: deployJob
+    displayName: "Deploy to Remote Server"
+    steps:
+
+      - script: |
+          echo "Backing up current artifact..."
+          ssh ${{ parameters.remoteUser }}@${{ parameters.remoteHost }} "cp -v ${{ parameters.remotePath }}/spring-app.jar ${{ parameters.remotePath }}/spring-app.jar.bak || echo 'No previous artifact found'"
+
+          echo "Transferring new artifact..."
+          scp ${{ parameters.artifactPath }} ${{ parameters.remoteUser }}@${{ parameters.remoteHost }}:${{ parameters.remotePath }}/spring-app.jar
+
+          echo "Restarting application..."
+          ssh ${{ parameters.remoteUser }}@${{ parameters.remoteHost }} << 'EOF'
+            pkill -f 'spring-app.jar' || echo "No app running"
+            nohup java -jar ${{ parameters.remotePath }}/spring-app.jar > app.log 2>&1 &
+          EOF
+
+          echo "Waiting for app to start..."
+          sleep 15
+
+          echo "Running health check..."
+          curl -f ${{ parameters.healthCheckUrl }} || (echo "Health check failed!" && exit 1)
+
+        displayName: "Deploy and Restart"
+

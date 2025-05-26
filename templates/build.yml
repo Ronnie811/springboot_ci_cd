@@ -1,18 +1,19 @@
 parameters:
-  imageName: ''
-  gradleCommand: ''
+  - name: dockerImage
+    type: string
+    default: 'springboot-builder'
 
-jobs:
-  - job: Build
-    displayName: Build Application
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-      - checkout: self
+  - name: workingDirectory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)'
 
-      - script: |
-          docker run --rm -v $(System.DefaultWorkingDirectory):/app \
-            -w /app \
-            ${{ parameters.imageName }} ./gradlew ${{ parameters.gradleCommand }}
-        displayName: Run Gradle Build in Docker
+steps:
+  - script: |
+      echo "Building application with Docker image: ${{ parameters.dockerImage }}"
+      docker run --rm \
+        -v ${{ parameters.workingDirectory }}:/app \
+        -w /app \
+        ${{ parameters.dockerImage }} \
+        ./gradlew clean build
+    displayName: 'Build Spring Boot App with Docker'
 
