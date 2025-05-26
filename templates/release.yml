@@ -13,7 +13,7 @@ parameters:
     default: 'springboot_ci_cd'
   - name: githubOrg
     type: string
-    default: 'Ronnie811'
+    default: 'roni-cadena81'
 
 jobs:
   - job: release
@@ -58,4 +58,4 @@ EOF
               -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}
 
     env:
-      GITHUB_TOKEN: $(GITHUB_TOKEN)  # Asegúrate de tener este valor en tu Variable Group o pipeline
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
