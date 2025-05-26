@@ -49,6 +49,3 @@ EOF
 
             echo "[INFO] Deploying to GitHub Maven Package"
             ./gradlew publish -Pgpr.user=${{ parameters.githubUser }} -Pgpr.key=${{ variables.GITHUB_TOKEN }}
-
-
-
