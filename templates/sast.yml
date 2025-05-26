@@ -24,6 +24,7 @@ jobs:
             -Dsonar.projectKey=${{ parameters.sonarProjectKey }} \
             -Dsonar.organization=${{ parameters.sonarOrganization }} \
             -Dsonar.host.url=${{ parameters.sonarHostUrl }} \
-            -Dsonar.login=${{ parameters.sonarToken }}
+            -Dsonar.login=${{ parameters.sonarToken }} \
+            -X
         displayName: 'Static Code Analysis with SonarQube'
 
