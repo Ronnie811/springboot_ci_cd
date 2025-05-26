@@ -28,3 +28,10 @@ jobs:
           echo "Verificando directorio de salida"
           find . -type d -name classes || echo "No se encontraron directorios 'classes'"
         displayName: 'Verificar binarios .class generados'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: '$(System.DefaultWorkingDirectory)'
+          artifactName: 'build-output'
+          publishLocation: 'Container'
+        displayName: 'Publish Build Artifacts'

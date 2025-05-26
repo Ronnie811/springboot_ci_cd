@@ -17,17 +17,60 @@ jobs:
     steps:
       - checkout: self
       
+      - task: DownloadBuildArtifacts@1
+        inputs:
+          buildType: 'current'
+          artifactName: 'build-output'
+          downloadPath: '$(System.ArtifactsDirectory)'
+        displayName: 'Download Build Artifacts'
+      
+      - script: |
+          echo "Copying build artifacts to workspace..."
+          cp -r "$(System.ArtifactsDirectory)/build-output/"* "$(System.DefaultWorkingDirectory)/"
+          ls -la "$(System.DefaultWorkingDirectory)/"
+        displayName: 'Setup Build Artifacts'
+      
       - script: |
           echo "Installing SonarScanner CLI..."
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
           unzip -q sonar-scanner.zip
           export PATH="$PWD/sonar-scanner-5.0.1.3006/bin:$PATH"
 
+          echo "Creating sonar-project.properties file..."
+          cat <<EOF > sonar-project.properties
+          sonar.projectKey=${{ parameters.sonarProjectKey }}
+          sonar.organization=${{ parameters.sonarOrganization }}
+          sonar.host.url=${{ parameters.sonarHostUrl }}
+          sonar.login=${{ parameters.sonarToken }}
+          
+          # Project information
+          sonar.projectName=SpringBoot CI/CD
+          sonar.projectVersion=1.0
+          
+          # Source code configuration
+          sonar.sources=src/main/java
+          sonar.tests=src/test/java
+          sonar.java.source=17
+          sonar.java.target=17
+          
+          # Compiled classes (adjust path based on your build tool)
+          sonar.java.binaries=build/classes/java/main,build/classes/java/test
+          sonar.java.test.binaries=build/classes/java/test
+          
+          # Coverage reports (if available)
+          sonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+          
+          # Exclude common paths
+          sonar.exclusions=**/build/**,**/target/**,**/*.min.js
+          EOF
+
+          echo "Checking if source directories exist..."
+          ls -la src/ || echo "Warning: src directory not found"
+          ls -la src/main/java/ || echo "Warning: src/main/java directory not found"
+          
+          echo "Checking if build directories exist..."
+          ls -la build/ || echo "Warning: build directory not found - make sure to run this after build stage"
+          
           echo "Running SonarQube Analysis..."
-          sonar-scanner \
-            -Dsonar.projectKey=${{ parameters.sonarProjectKey }} \
-            -Dsonar.organization=${{ parameters.sonarOrganization }} \
-            -Dsonar.host.url=${{ parameters.sonarHostUrl }} \
-            -Dsonar.login=${{ parameters.sonarToken }} \
-            -X
+          sonar-scanner -X
         displayName: 'Static Code Analysis with SonarQube'
