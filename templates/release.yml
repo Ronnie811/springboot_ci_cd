@@ -3,10 +3,10 @@
 parameters:
   - name: projectName
     type: string
-    default: 'spring-app'
+    default: 'spring_app'
   - name: jarFile
     type: string
-    default: 'build/libs/spring-app-0.0.1-SNAPSHOT.jar'
+    default: 'build/libs/spring_app-0.0.1-SNAPSHOT.jar'
   - name: githubUser
     type: string
     default: 'Ronnie811'
@@ -38,23 +38,39 @@ jobs:
           cp "$(System.ArtifactsDirectory)/jar-artifacts/"*.jar build/libs/
           ls -la build/libs/
           
-          echo "Verifying JAR file exists..."
-          if [ -f "${{ parameters.jarFile }}" ]; then
-            echo "JAR file found: ${{ parameters.jarFile }}"
-            ls -la "${{ parameters.jarFile }}"
+          echo "Auto-detecting main JAR file..."
+          # Buscar el JAR más grande (excluyendo los -plain.jar)
+          MAIN_JAR=$(find build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
+          
+          if [ -n "$MAIN_JAR" ]; then
+            echo "Main JAR detected: $MAIN_JAR"
+            ls -la "$MAIN_JAR"
+            
+            # Actualizar la variable para usar el JAR detectado
+            echo "##vso[task.setvariable variable=DETECTED_JAR_FILE]$MAIN_JAR"
           else
-            echo "JAR file not found, listing available files:"
-            find . -name "*.jar" -type f
-            exit 1
+            echo "No main JAR file found, using specified parameter: ${{ parameters.jarFile }}"
+            if [ -f "${{ parameters.jarFile }}" ]; then
+              echo "JAR file found: ${{ parameters.jarFile }}"
+              ls -la "${{ parameters.jarFile }}"
+              echo "##vso[task.setvariable variable=DETECTED_JAR_FILE]${{ parameters.jarFile }}"
+            else
+              echo "JAR file not found, listing available files:"
+              find . -name "*.jar" -type f
+              exit 1
+            fi
           fi
         displayName: 'Setup JAR File'
 
       - script: |
           echo "Publishing to GitHub Packages..."
           
+          # Usar el JAR detectado o el parámetro especificado
+          JAR_FILE="${DETECTED_JAR_FILE:-${{ parameters.jarFile }}}"
+          
           # Verificar que el archivo JAR existe
-          if [ ! -f "${{ parameters.jarFile }}" ]; then
-            echo "ERROR: JAR file not found at ${{ parameters.jarFile }}"
+          if [ ! -f "$JAR_FILE" ]; then
+            echo "ERROR: JAR file not found at $JAR_FILE"
             echo "Available files:"
             find . -name "*.jar" -type f
             exit 1
@@ -78,7 +94,7 @@ jobs:
           EOF
 
           echo "[INFO] Deploying to GitHub Packages"
-          echo "File: ${{ parameters.jarFile }}"
+          echo "File: $JAR_FILE"
           echo "Repository: https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}"
           
           mvn deploy:deploy-file \
@@ -86,7 +102,7 @@ jobs:
             -DartifactId=${{ parameters.projectName }} \
             -Dversion=0.0.1-SNAPSHOT \
             -Dpackaging=jar \
-            -Dfile=${{ parameters.jarFile }} \
+            -Dfile="$JAR_FILE" \
             -DrepositoryId=github \
             -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }} \
             -X

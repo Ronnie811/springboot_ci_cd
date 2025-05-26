@@ -32,8 +32,8 @@ stages:
           githubUser: Ronnie811
           githubRepo: springboot_ci_cd
           githubOrg: Ronnie811
-          projectName: spring-app
-          jarFile: build/libs/spring-app-0.0.1-SNAPSHOT.jar
+          projectName: spring_app
+          jarFile: build/libs/spring_app-0.0.1-SNAPSHOT.jar
 
 #  - stage: Deploy
 #    dependsOn: Release
