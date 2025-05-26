@@ -39,6 +39,12 @@ This repository contains a sample Spring Boot project with a fully modular CI/CD
 
 1. Clone this repository:
 
-```bash
+``bash
 git clone https://github.com/Ronnie811/springboot_ci_cd.git
 cd springboot_ci_cd
+
+2. Modify variables in pipeline YAML to your environment (GitHub user, repo, SSH server, etc.).
+
+3. Push code to trigger the pipeline or manually run the pipeline in Azure DevOps.
+
+4. Monitor the pipeline stages for build, test, release, and deploy.
