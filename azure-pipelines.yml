@@ -19,14 +19,30 @@ stages:
     dependsOn: Build
     jobs:
       - template: templates/sast.yml
+        parameters:
+          sonarProjectKey: 'springboot_ci_cd'
+          sonarOrganization: 'ronnie811'
+          sonarToken: $(SONAR_TOKEN)  # Asegúrate que esta variable esté en tu Variable Group
 
   - stage: Release
     dependsOn: SAST
     jobs:
       - template: templates/release.yml
+        parameters:
+          githubUser: Ronnie811
+          githubRepo: springboot_ci_cd
+          githubOrg: Ronnie811
+          projectName: spring-app
+          jarFile: build/libs/spring-app-0.0.1-SNAPSHOT.jar
 
-  - stage: Deploy
-    dependsOn: Release
-    jobs:
-      - template: templates/deploy.yml
+#  - stage: Deploy
+#    dependsOn: Release
+#    jobs:
+#      - template: templates/deploy.yml
+#        parameters:
+#          jarPath: 'build/libs/spring-app-0.0.1-SNAPSHOT.jar'
+#          remoteHost: $(REMOTE_HOST)
+#          remoteUser: $(REMOTE_USER)
+#          remoteDeployPath: $(REMOTE_DEPLOY_PATH)
+#          serviceName: $(SERVICE_NAME)
 

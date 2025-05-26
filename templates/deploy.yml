@@ -1,38 +1,51 @@
 parameters:
-  - name: remoteUser
+  - name: jarPath
     type: string
+    default: 'build/libs/spring-app-0.0.1-SNAPSHOT.jar'
   - name: remoteHost
     type: string
-  - name: remotePath
+  - name: remoteUser
     type: string
-  - name: artifactPath
+  - name: remoteDeployPath
     type: string
-  - name: healthCheckUrl
+  - name: serviceName
     type: string
 
 jobs:
-  - job: deployJob
-    displayName: "Deploy to Remote Server"
+  - job: DeployJob
+    displayName: Deploy JAR to Remote Server
+    pool:
+      vmImage: 'ubuntu-latest'
+
     steps:
+      - checkout: self
 
-      - script: |
-          echo "Backing up current artifact..."
-          ssh ${{ parameters.remoteUser }}@${{ parameters.remoteHost }} "cp -v ${{ parameters.remotePath }}/spring-app.jar ${{ parameters.remotePath }}/spring-app.jar.bak || echo 'No previous artifact found'"
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: 'remote-ssh-service'  # Definido en Service Connections
+          sourceFolder: '$(System.DefaultWorkingDirectory)'
+          contents: '${{ parameters.jarPath }}'
+          targetFolder: '${{ parameters.remoteDeployPath }}/backup'
 
-          echo "Transferring new artifact..."
-          scp ${{ parameters.artifactPath }} ${{ parameters.remoteUser }}@${{ parameters.remoteHost }}:${{ parameters.remotePath }}/spring-app.jar
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "[INFO] Connecting via SSH to deploy JAR"
 
-          echo "Restarting application..."
-          ssh ${{ parameters.remoteUser }}@${{ parameters.remoteHost }} << 'EOF'
-            pkill -f 'spring-app.jar' || echo "No app running"
-            nohup java -jar ${{ parameters.remotePath }}/spring-app.jar > app.log 2>&1 &
-          EOF
+            ssh ${{ parameters.remoteUser }}@${{ parameters.remoteHost }} <<EOF
+              echo "[INFO] Creating backup of existing jar (if exists)"
+              mkdir -p ${{ parameters.remoteDeployPath }}/backup
+              cp ${{ parameters.remoteDeployPath }}/app.jar ${{ parameters.remoteDeployPath }}/backup/app-$(date +%s).jar || true
 
-          echo "Waiting for app to start..."
-          sleep 15
+              echo "[INFO] Replacing jar"
+              cp ${{ parameters.remoteDeployPath }}/backup/$(basename ${{ parameters.jarPath }}) ${{ parameters.remoteDeployPath }}/app.jar
 
-          echo "Running health check..."
-          curl -f ${{ parameters.healthCheckUrl }} || (echo "Health check failed!" && exit 1)
+              echo "[INFO] Restarting service"
+              sudo systemctl restart ${{ parameters.serviceName }}
 
-        displayName: "Deploy and Restart"
+              echo "[INFO] Health check"
+              curl -f http://localhost:8080/actuator/health || exit 1
+            EOF
+        displayName: Deploy and Restart
 

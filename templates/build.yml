@@ -9,6 +9,9 @@ parameters:
 
 jobs:
   - job: BuildJob
+    displayName: Build with Docker
+    pool:
+      vmImage: 'ubuntu-latest'
     steps:
       - script: |
           echo "Building application with Docker image: ${{ parameters.dockerImage }}"

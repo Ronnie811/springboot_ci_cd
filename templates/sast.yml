@@ -9,18 +9,21 @@ parameters:
   - name: sonarToken
     type: string
 
-steps:
-  - script: |
-      echo "Installing SonarScanner CLI..."
-      curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
-      unzip -q sonar-scanner.zip
-      export PATH="$PWD/sonar-scanner-5.0.1.3006/bin:$PATH"
-      
-      echo "Running SonarQube Analysis..."
-      sonar-scanner \
-        -Dsonar.projectKey=${{ parameters.sonarProjectKey }} \
-        -Dsonar.organization=${{ parameters.sonarOrganization }} \
-        -Dsonar.host.url=${{ parameters.sonarHostUrl }} \
-        -Dsonar.login=${{ parameters.sonarToken }}
-    displayName: 'Static Code Analysis with SonarQube'
+jobs:
+  - job: RunSAST
+    displayName: 'Static Code Analysis'
+    steps:
+      - script: |
+          echo "Installing SonarScanner CLI..."
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
+          unzip -q sonar-scanner.zip
+          export PATH="$PWD/sonar-scanner-5.0.1.3006/bin:$PATH"
+
+          echo "Running SonarQube Analysis..."
+          sonar-scanner \
+            -Dsonar.projectKey=${{ parameters.sonarProjectKey }} \
+            -Dsonar.organization=${{ parameters.sonarOrganization }} \
+            -Dsonar.host.url=${{ parameters.sonarHostUrl }} \
+            -Dsonar.login=${{ parameters.sonarToken }}
+        displayName: 'Static Code Analysis with SonarQube'
 
