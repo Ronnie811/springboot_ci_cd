@@ -1,7 +1,7 @@
 parameters:
   - name: dockerImage
     type: string
-    default: 'springboot-builder'
+    default: 'gradle:8.5.0-jdk17'
 
   - name: workingDirectory
     type: string
@@ -9,9 +9,6 @@ parameters:
 
 jobs:
   - job: BuildJob
-    displayName: Build with Docker
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
       - script: |
           echo "Building application with Docker image: ${{ parameters.dockerImage }}"
@@ -21,4 +18,3 @@ jobs:
             ${{ parameters.dockerImage }} \
             ./gradlew clean build
         displayName: 'Build Spring Boot App with Docker'
-
