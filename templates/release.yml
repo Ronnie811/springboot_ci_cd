@@ -15,7 +15,7 @@ parameters:
     default: 'springboot_ci_cd'
   - name: githubOrg
     type: string
-    default: 'roni-cadena81'
+    default: 'Ronnie811'
 
 jobs:
   - job: release
