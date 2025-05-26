@@ -1,3 +1,5 @@
+# templates/release.yml
+
 parameters:
   - name: projectName
     type: string
@@ -20,22 +22,16 @@ jobs:
     displayName: Publish JAR to GitHub Packages
     pool:
       vmImage: ubuntu-latest
-    env:
-      GITHUB_TOKEN: $(GITHUB_TOKEN)
     steps:
       - checkout: self
 
-      - task: Bash@3
-        name: PublishJar
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "Publishing to GitHub Packages..."
+      - script: |
+          echo "Publishing to GitHub Packages..."
 
-            echo "[INFO] Configuring Maven settings"
-            mkdir -p ~/.m2
+          echo "[INFO] Configuring Maven settings"
+          mkdir -p ~/.m2
 
-            cat <<EOF > ~/.m2/settings.xml
+          cat <<EOF > ~/.m2/settings.xml
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
@@ -49,12 +45,15 @@ jobs:
 </settings>
 EOF
 
-            echo "[INFO] Installing JAR with Maven"
-            mvn deploy:deploy-file \
-              -DgroupId=com.${{ parameters.githubOrg }} \
-              -DartifactId=${{ parameters.projectName }} \
-              -Dversion=0.0.1-SNAPSHOT \
-              -Dpackaging=jar \
-              -Dfile=${{ parameters.jarFile }} \
-              -DrepositoryId=github \
-              -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}
+          echo "[INFO] Deploying to GitHub Packages"
+          mvn deploy:deploy-file \
+            -DgroupId=com.${{ parameters.githubOrg }} \
+            -DartifactId=${{ parameters.projectName }} \
+            -Dversion=0.0.1-SNAPSHOT \
+            -Dpackaging=jar \
+            -Dfile=${{ parameters.jarFile }} \
+            -DrepositoryId=github \
+            -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}
+        displayName: 'Publish JAR to GitHub Packages'
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
