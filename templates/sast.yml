@@ -12,7 +12,11 @@ parameters:
 jobs:
   - job: RunSAST
     displayName: 'Static Code Analysis'
+    pool:
+      vmImage: 'ubuntu-latest'
     steps:
+      - checkout: self
+      
       - script: |
           echo "Installing SonarScanner CLI..."
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
@@ -27,4 +31,3 @@ jobs:
             -Dsonar.login=${{ parameters.sonarToken }} \
             -X
         displayName: 'Static Code Analysis with SonarQube'
-

@@ -28,4 +28,3 @@ jobs:
           echo "Verificando directorio de salida"
           find . -type d -name classes || echo "No se encontraron directorios 'classes'"
         displayName: 'Verificar binarios .class generados'
-
