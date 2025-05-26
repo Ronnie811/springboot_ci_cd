@@ -31,6 +31,13 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         inputs:
+          pathToPublish: 'build/libs'
+          artifactName: 'jar-artifacts'
+          publishLocation: 'Container'
+        displayName: 'Publish JAR Artifacts'
+        
+      - task: PublishBuildArtifacts@1
+        inputs:
           pathToPublish: '$(System.DefaultWorkingDirectory)'
           artifactName: 'build-output'
           publishLocation: 'Container'

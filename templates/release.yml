@@ -15,7 +15,7 @@ parameters:
     default: 'springboot_ci_cd'
   - name: githubOrg
     type: string
-    default: 'Ronnie811'
+    default: 'roni-cadena81'
 
 jobs:
   - job: release
@@ -24,9 +24,41 @@ jobs:
       vmImage: ubuntu-latest
     steps:
       - checkout: self
+      
+      - task: DownloadBuildArtifacts@1
+        inputs:
+          buildType: 'current'
+          artifactName: 'jar-artifacts'
+          downloadPath: '$(System.ArtifactsDirectory)'
+        displayName: 'Download JAR Artifacts'
+
+      - script: |
+          echo "Setting up JAR file location..."
+          mkdir -p build/libs
+          cp "$(System.ArtifactsDirectory)/jar-artifacts/"*.jar build/libs/
+          ls -la build/libs/
+          
+          echo "Verifying JAR file exists..."
+          if [ -f "${{ parameters.jarFile }}" ]; then
+            echo "JAR file found: ${{ parameters.jarFile }}"
+            ls -la "${{ parameters.jarFile }}"
+          else
+            echo "JAR file not found, listing available files:"
+            find . -name "*.jar" -type f
+            exit 1
+          fi
+        displayName: 'Setup JAR File'
 
       - script: |
           echo "Publishing to GitHub Packages..."
+          
+          # Verificar que el archivo JAR existe
+          if [ ! -f "${{ parameters.jarFile }}" ]; then
+            echo "ERROR: JAR file not found at ${{ parameters.jarFile }}"
+            echo "Available files:"
+            find . -name "*.jar" -type f
+            exit 1
+          fi
 
           echo "[INFO] Configuring Maven settings"
           mkdir -p ~/.m2
@@ -46,6 +78,9 @@ jobs:
           EOF
 
           echo "[INFO] Deploying to GitHub Packages"
+          echo "File: ${{ parameters.jarFile }}"
+          echo "Repository: https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}"
+          
           mvn deploy:deploy-file \
             -DgroupId=com.${{ parameters.githubOrg }} \
             -DartifactId=${{ parameters.projectName }} \
@@ -53,7 +88,8 @@ jobs:
             -Dpackaging=jar \
             -Dfile=${{ parameters.jarFile }} \
             -DrepositoryId=github \
-            -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }}
+            -Durl=https://maven.pkg.github.com/${{ parameters.githubOrg }}/${{ parameters.githubRepo }} \
+            -X
         displayName: 'Publish JAR to GitHub Packages'
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
