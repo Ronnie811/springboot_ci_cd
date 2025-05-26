@@ -1,20 +1,31 @@
 parameters:
   - name: dockerImage
     type: string
-    default: 'gradle:8.5.0-jdk17'
-
-  - name: workingDirectory
-    type: string
-    default: '$(System.DefaultWorkingDirectory)'
 
 jobs:
-  - job: BuildJob
+  - job: Build
+    displayName: 'Build Java Project'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    container: 
+      image: ${{ parameters.dockerImage }}
+
     steps:
+      - checkout: self
+
       - script: |
-          echo "Building application with Docker image: ${{ parameters.dockerImage }}"
-          docker run --rm \
-            -v ${{ parameters.workingDirectory }}:/app \
-            -w /app \
-            ${{ parameters.dockerImage }} \
-            ./gradlew clean build
-        displayName: 'Build Spring Boot App with Docker'
+          echo "Verificando versión de Gradle"
+          gradle --version
+        displayName: 'Gradle Version Check'
+
+      - script: |
+          echo "Limpiando y construyendo el proyecto con Gradle"
+          gradle clean build
+        displayName: 'Build Java Project with Gradle'
+
+      - script: |
+          echo "Verificando directorio de salida"
+          find . -type d -name classes || echo "No se encontraron directorios 'classes'"
+        displayName: 'Verificar binarios .class generados'
+

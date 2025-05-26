@@ -31,7 +31,7 @@ stages:
         parameters:
           githubUser: Ronnie811
           githubRepo: springboot_ci_cd
-          githubOrg: roni-cadena81
+          githubOrg: Ronnie811
           projectName: spring-app
           jarFile: build/libs/spring-app-0.0.1-SNAPSHOT.jar
 
