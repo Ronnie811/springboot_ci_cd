@@ -21,7 +21,7 @@ stages:
       - template: templates/sast.yml
         parameters:
           sonarProjectKey: 'springboot_ci_cd'
-          sonarOrganization: 'ronnie811'
+          sonarOrganization: 'roni-cadena81'
           sonarToken: $(SONAR_TOKEN)  # Asegúrate que esta variable esté en tu Variable Group
 
   - stage: Release
